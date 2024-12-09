@@ -6,6 +6,8 @@ router.post("/sendMessage",
     async (req,res) => {
         const content = req.body.content;
         const sender = req.body.sender;
+        const to = req.body.to;
+        const toContent = req.body.toContent;
 
         if(!content || !sender){
             console.log("Insufficient data to send msg")
@@ -14,7 +16,9 @@ router.post("/sendMessage",
 
         var newMessage = {
             sender : sender,
-            content : content
+            content : content,
+            to : to,
+            toContent : toContent
         }
 
         try{

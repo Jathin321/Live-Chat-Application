@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import io from "socket.io-client"
+
+const ENDPOINT = "http://localhost:7777"
+var socket;
 
 function Chatting() {
   const [messages, setMessages] = useState([]);
@@ -20,15 +24,39 @@ function Chatting() {
 
   useEffect(() => {
     loadData();
-    const user = localStorage.getItem("userEmail");
+    // const user = localStorage.getItem("userEmail");
+    // socket = io(ENDPOINT);
+    // socket.emit("setup", localStorage.getItem("userEmail"))
+
   }, []);
+
+  useEffect(() => {
+    socket = io(ENDPOINT);
+    socket.emit("setup", localStorage.getItem("userEmail"))
+  });
+
 
   const handleLogout = () => {
     localStorage.removeItem("userEmail")
     navigate("/signup")
   }
 
+  const [sendMessageTimer, setSendMessageTimer] = useState(false)
+
   const handleSendMessage = async() => {
+
+    if (sendMessageTimer) {
+      alert("Don't spam!");
+      return;
+    }
+    setSendMessageTimer(true)
+
+    // Start a 3-second timer before allowing the next message to be sent
+    setTimeout(() => {
+      setSendMessageTimer(false) // Reset the timer after 3 seconds
+    }, 3000); // 3000ms = 3 seconds
+
+
     try {
       const response = await fetch("http://localhost:7777/api/sendMessage", {
         method: 'POST',
@@ -47,10 +75,26 @@ function Chatting() {
       if(json.success == false){
         alert("Insufficient data to send msg (or) technical error")
       }
+      else{
+        socket.emit("new message",{
+          sender : localStorage.getItem("userEmail"),
+          content : newMessage
+        } )
+        setMessages([...messages,{
+          sender : localStorage.getItem("userEmail"),
+          content : newMessage
+        }])
+      }
     } catch (error) {
       console.error("SYJ Error:", error);
     }
   }
+
+  useEffect(() => {
+    socket.on("message received",(newMessage) => {
+      setMessages([...messages, newMessage])
+    })
+  })
 
   return (
     <>

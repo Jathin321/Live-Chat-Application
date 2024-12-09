@@ -15,7 +15,7 @@ const mongoDb = async () => {
             if(err) console.log("Msg fetching error", err)
         })
     global.messages = messages;
-    console.log(global.messages)
+    // console.log(global.messages)
         
     } catch (error) {
         console.error("MongoDB connection error:", error);
